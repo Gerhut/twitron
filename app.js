@@ -1,4 +1,4 @@
-/* eslint-env browser */
+/* eslint-env node, browser */
 
 const TWITCH_SERVER = 'wss://irc-ws.chat.twitch.tv:443'
 
@@ -7,35 +7,40 @@ const ALLOW_KEYS = {
   down: 'Down',
   left: 'Left',
   right: 'Right',
-  start: 'Space',
-  select: 'Alt'
+  a: 'Space',
+  b: 'Alt'
 }
 
 let webSocket = new WebSocket(TWITCH_SERVER)
 webSocket.addEventListener('open', openHandler)
-webSocket.addEventListener('message', messageHandler)
+webSocket.addEventListener('message', logHandler)
+webSocket.addEventListener('message', pingHandler)
+webSocket.addEventListener('message', keyHandler)
 webSocket.addEventListener('close', closeHandler)
 
 function openHandler () {
   this.send(`PASS ${process.env.TWITCH_PASSWORD}`)
   this.send(`NICK ${process.env.TWITCH_USERNAME}`)
   this.send(`JOIN ${process.env.TWITCH_CHANNEL}`)
-  this.send(`PRIVMSG ${process.env.TWITCH_CHANNEL} :Keys: ${Object.keys(ALLOW_KEYS)}`)
 }
 
-function messageHandler ({ data }) {
-  console.info(data)
+function logHandler ({ data }) {
+  console.debug(data)
+}
 
-  // :gerhut!gerhut@gerhut.tmi.twitch.tv PRIVMSG #gerhut :hi\r\n
-  const match = data.match(/^:(\w+)!\1@\1\.tmi\.twitch\.tv PRIVMSG #\w+ :(.+)\r\n$/)
+function pingHandler ({ data }) {
+  if (data.trim() === 'PING :tmi.twitch.tv') {
+    this.send('PONG :tmi.twitch.tv')
+  }
+}
+
+function keyHandler ({ data }) {
+  // :gerhut!gerhut@gerhut.tmi.twitch.tv PRIVMSG #gerhut :!start\r\n
+  const match = data.match(/^:(\w+)!\1@\1\.tmi\.twitch\.tv PRIVMSG #\w+ :!(.+)\r\n$/)
   if (match == null) return
 
   const username = match[1]
-  const message = match[2]
-
-  console.info(username, 'says', message)
-
-  const key = message.trim().toLowerCase()
+  const key = match[2].trim().toLowerCase()
   if (!Object.prototype.hasOwnProperty.call(ALLOW_KEYS, key)) return
   const keyCode = ALLOW_KEYS[key]
 
@@ -50,9 +55,17 @@ function messageHandler ({ data }) {
 function closeHandler () {
   webSocket = new WebSocket(TWITCH_SERVER)
   webSocket.addEventListener('open', openHandler)
-  webSocket.addEventListener('message', messageHandler)
+  webSocket.addEventListener('message', logHandler)
+  webSocket.addEventListener('message', pingHandler)
+  webSocket.addEventListener('message', keyHandler)
   webSocket.addEventListener('close', closeHandler)
 }
 
 const webview = document.querySelector('webview')
 webview.setAttribute('src', process.env.TWITRON_PAGE)
+
+setInterval(function introduce () {
+  webSocket.send(`PRIVMSG ${process.env.TWITCH_CHANNEL} :Keys: ${
+    Object.keys(ALLOW_KEYS).map(key => `!${key}`).join(', ')
+  }`)
+}, 30000)
