@@ -1,0 +1,31 @@
+{
+  "name": "twitron",
+  "version": "0.0.0",
+  "description": "Stream electron in twitch",
+  "scripts": {
+    "start": "electron --require dotenv/config index.html",
+    "test": "standard"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/Gerhut/twitron.git"
+  },
+  "keywords": [
+    "twitch",
+    "electron"
+  ],
+  "author": "George Cheng <Gerhut@GMail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Gerhut/twitron/issues"
+  },
+  "homepage": "https://github.com/Gerhut/twitron#readme",
+  "dependencies": {
+    "dotenv": "^6.1.0",
+    "electron": "^3.0.8",
+    "normalize.css": "^8.0.1"
+  },
+  "devDependencies": {
+    "standard": "^12.0.1"
+  }
+}
