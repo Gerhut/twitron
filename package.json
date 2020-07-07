@@ -22,7 +22,7 @@
   "homepage": "https://github.com/Gerhut/twitron#readme",
   "dependencies": {
     "dotenv": "^6.1.0",
-    "electron": "^3.0.8",
+    "electron": "^7.2.4",
     "normalize.css": "^8.0.1"
   },
   "devDependencies": {
